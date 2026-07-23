@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나의 꿈 만들기</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+<style>
+  :root{
+    --sky:#3b6cf6;
+    --sky-deep:#274bb8;
+    --dawn:#ff7a4d;
+    --gold:#ffc24a;
+    --ink:#16213e;
+    --ink-soft:#5a648a;
+    --paper:#fbfaf6;
+    --mist:#eef2ff;
+    --line:#dfe4f2;
+    --ok:#1f9d6b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:
+      radial-gradient(1100px 500px at 80% -10%, #dce7ff 0%, transparent 60%),
+      radial-gradient(900px 460px at -5% 0%, #ffe9dd 0%, transparent 55%),
+      var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    padding:32px 18px 64px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto}
+
+  header.hero{text-align:center;margin-bottom:34px}
+  .hero .kick{
+    display:inline-block;font-size:13px;font-weight:700;letter-spacing:.14em;
+    color:var(--sky-deep);background:var(--mist);
+    padding:6px 14px;border-radius:999px;margin-bottom:16px;
+  }
+  .hero h1{
+    font-size:34px;font-weight:800;line-height:1.2;letter-spacing:-.02em;
+  }
+  .hero h1 .run{
+    background:linear-gradient(120deg,var(--dawn),var(--gold));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p{margin-top:12px;color:var(--ink-soft);font-size:15px}
+
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:22px;
+    padding:26px 24px;margin-bottom:24px;
+    box-shadow:0 18px 40px -28px rgba(22,33,62,.45);
+  }
+  .card-head{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .badge{
+    flex:none;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+    font-weight:800;font-size:18px;color:#fff;
+  }
+  .b1{background:linear-gradient(135deg,var(--sky),var(--sky-deep))}
+  .b2{background:linear-gradient(135deg,var(--dawn),var(--gold))}
+  .card-head h2{font-size:21px;font-weight:800;letter-spacing:-.01em}
+  .card-sub{color:var(--ink-soft);font-size:14px;margin:2px 0 20px 56px}
+
+  .drop{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    width:100%;min-height:150px;
+    border:2px dashed var(--line);border-radius:16px;background:var(--paper);
+    padding:26px 22px;text-align:center;cursor:pointer;transition:.15s;
+  }
+  .drop>div{width:100%}
+  .drop:hover,.drop.over{border-color:var(--sky);background:var(--mist)}
+  .drop .ico{font-size:30px;line-height:1}
+  .drop .t{font-weight:700;margin-top:8px;font-size:15px}
+  .drop .s{color:var(--ink-soft);font-size:13px;margin-top:3px}
+  .drop img{max-width:100%;max-height:260px;border-radius:11px;display:block;margin:0 auto}
+  input[type=file]{display:none}
+
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:18px}
+  .btn{
+    appearance:none;border:none;cursor:pointer;font-family:inherit;
+    font-weight:700;font-size:15px;padding:13px 22px;border-radius:13px;
+    color:#fff;transition:.15s;flex:1;min-width:180px;
+  }
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn-sky{background:linear-gradient(135deg,var(--sky),var(--sky-deep))}
+  .btn-dawn{background:linear-gradient(135deg,var(--dawn),#ff5e7a)}
+  .btn:not(:disabled):hover{filter:brightness(1.06);transform:translateY(-1px)}
+
+  .speed{display:flex;align-items:center;gap:12px;margin-top:18px;font-size:14px;color:var(--ink-soft)}
+  .speed input{flex:1;accent-color:var(--dawn)}
+  .speed b{color:var(--ink);font-variant-numeric:tabular-nums;min-width:54px;text-align:right}
+
+  .status{margin-top:16px;font-size:14px;font-weight:600;min-height:20px}
+  .status.ok{color:var(--ok)}
+  .status.err{color:#d6453c}
+
+  .grid9{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px;
+  }
+  .grid9:empty{margin:0}
+  .grid9 figure{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+  .grid9 img{width:100%;display:block;aspect-ratio:1;object-fit:contain}
+  .grid9 figcaption{font-size:11px;text-align:center;color:var(--ink-soft);padding:4px 0;font-weight:600}
+
+  .result{margin-top:18px;text-align:center}
+  .result:empty{margin:0}
+  .result img{max-width:100%;border-radius:12px;border:1px solid var(--line)}
+  .result .dl{margin-top:14px;display:inline-block}
+
+  footer{text-align:center;color:var(--ink-soft);font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="kick">DREAM MAKER</span>
+    <h1>나의 꿈, <span class="run">한 장의 그림</span>으로</h1>
+    <p>꿈 그림을 올리면 잘라서 저장하거나, 움직이는 GIF로 만들어 줘요.</p>
+  </header>
+
+  <!-- 1. 9칸 자르기 -->
+  <section class="card">
+    <div class="card-head">
+      <span class="badge b1">1</span>
+      <h2>나의 꿈을 이루는 캐릭터</h2>
+    </div>
+    <p class="card-sub">3×3(9칸) 그림을 잘라 <b>dream1 ~ dream9</b>로 저장하고 ZIP으로 묶어요.</p>
+
+    <label class="drop" id="drop1">
+      <input type="file" id="file1" accept="image/*">
+      <div id="ph1">
+        <div class="ico">🖼️</div>
+        <div class="t">9칸 그림 올리기</div>
+        <div class="s">정사각형(3×3) 그림을 선택하거나 끌어다 놓으세요</div>
+      </div>
+    </label>
+
+    <div class="grid9" id="grid1"></div>
+
+    <div class="row">
+      <button class="btn btn-sky" id="go1" disabled>9칸 잘라서 ZIP 저장</button>
+    </div>
+
+    <div class="status" id="st1"></div>
+  </section>
+
+  <!-- 2. GIF 만들기 -->
+  <section class="card">
+    <div class="card-head">
+      <span class="badge b2">2</span>
+      <h2>꿈을 향해 달려가는 나</h2>
+    </div>
+    <p class="card-sub">가로 3:1(3프레임) 그림을 이어 움직이는 <b>GIF</b>를 만들어요.</p>
+
+    <label class="drop" id="drop2">
+      <input type="file" id="file2" accept="image/*">
+      <div id="ph2">
+        <div class="ico">🏃</div>
+        <div class="t">3프레임 그림 올리기</div>
+        <div class="s">가로로 긴(3:1) 달리기 그림을 선택하거나 끌어다 놓으세요</div>
+      </div>
+    </label>
+
+    <div class="speed">
+      <span>속도</span>
+      <input type="range" id="speed" min="80" max="500" step="20" value="220">
+      <b id="speedval">220ms</b>
+    </div>
+
+    <div class="result" id="res2"></div>
+
+    <div class="row">
+      <button class="btn btn-dawn" id="go2" disabled>GIF 만들기</button>
+    </div>
+
+    <div class="status" id="st2"></div>
+  </section>
+
+  <footer>그림은 인터넷에 올라가지 않고, 여러분의 컴퓨터 안에서만 처리돼요.</footer>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- 공통 도구 ---------- */
+function loadImage(file){
+  return new Promise(function(resolve, reject){
+    var img = new Image();
+    img.onload = function(){ resolve(img); };
+    img.onerror = function(){ reject(new Error("그림을 읽지 못했어요.")); };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function cropToCanvas(img, sx, sy, sw, sh){
+  var c = document.createElement("canvas");
+  c.width = sw; c.height = sh;
+  var ctx = c.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, sw, sh);
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+  return c;
+}
+
+function canvasToBlob(canvas){
+  return new Promise(function(resolve){
+    canvas.toBlob(function(b){ resolve(b); }, "image/png");
+  });
+}
+
+function downloadBlob(blob, name){
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
+
+function setStatus(el, msg, kind){
+  el.textContent = msg || "";
+  el.className = "status" + (kind ? " " + kind : "");
+}
+
+/* 업로드 영역(파일 선택 + 드래그) 연결 */
+function wireDrop(dropId, fileId, phId, onReady){
+  var drop = document.getElementById(dropId);
+  var file = document.getElementById(fileId);
+  var ph = document.getElementById(phId);
+
+  function handle(f){
+    if(!f || !f.type.indexOf) return;
+    if(f.type.indexOf("image") !== 0) return;
+    loadImage(f).then(function(img){
+      ph.innerHTML = "";
+      var preview = new Image();
+      preview.src = img.src;
+      ph.appendChild(preview);
+      onReady(img);
+    });
+  }
+
+  file.addEventListener("change", function(){
+    if(file.files && file.files[0]) handle(file.files[0]);
+  });
+  ["dragenter","dragover"].forEach(function(ev){
+    drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add("over"); });
+  });
+  ["dragleave","drop"].forEach(function(ev){
+    drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove("over"); });
+  });
+  drop.addEventListener("drop", function(e){
+    var dt = e.dataTransfer;
+    if(dt && dt.files && dt.files[0]) handle(dt.files[0]);
+  });
+}
+
+/* ---------- 1. 9칸 자르기 → ZIP ---------- */
+var img1 = null;
+var cells1 = [];
+
+function buildPreview1(){
+  cells1 = [];
+  var grid = document.getElementById("grid1");
+  grid.innerHTML = "";
+  if(!img1) return;
+  var cellW = Math.floor(img1.width / 3);
+  var cellH = Math.floor(img1.height / 3);
+  for(var r = 0; r < 3; r++){
+    for(var col = 0; col < 3; col++){
+      var idx = r * 3 + col + 1;
+      var canvas = cropToCanvas(img1, col * cellW, r * cellH, cellW, cellH);
+      cells1.push({ idx: idx, canvas: canvas });
+
+      var fig = document.createElement("figure");
+      var im = new Image(); im.src = canvas.toDataURL("image/png");
+      var cap = document.createElement("figcaption"); cap.textContent = "dream" + idx;
+      fig.appendChild(im); fig.appendChild(cap); grid.appendChild(fig);
+    }
+  }
+}
+
+wireDrop("drop1", "file1", "ph1", function(img){
+  img1 = img;
+  document.getElementById("go1").disabled = false;
+  buildPreview1();
+  setStatus(document.getElementById("st1"), "9칸 미리보기를 확인하고 ZIP으로 저장하세요.", "");
+});
+
+document.getElementById("go1").addEventListener("click", function(){
+  if(!img1 || !cells1.length) return;
+  var btn = this;
+  var st = document.getElementById("st1");
+  btn.disabled = true;
+  setStatus(st, "ZIP으로 저장하는 중...", "");
+
+  var zip = new JSZip();
+  var tasks = cells1.map(function(cell){
+    return canvasToBlob(cell.canvas).then(function(blob){
+      zip.file("dream" + cell.idx + ".png", blob);
+    });
+  });
+
+  Promise.all(tasks).then(function(){
+    return zip.generateAsync({ type: "blob" });
+  }).then(function(content){
+    downloadBlob(content, "dream_character.zip");
+    setStatus(st, "완료! dream1~dream9를 ZIP으로 저장했어요.", "ok");
+    btn.disabled = false;
+  }).catch(function(){
+    setStatus(st, "저장 중 문제가 생겼어요. 다시 시도해 주세요.", "err");
+    btn.disabled = false;
+  });
+});
+
+/* ---------- 2. 3프레임 → GIF ---------- */
+var img2 = null;
+var animTimer = null;
+var animFrame = 0;
+var speed = document.getElementById("speed");
+var speedval = document.getElementById("speedval");
+speed.addEventListener("input", function(){ speedval.textContent = speed.value + "ms"; });
+
+function stopPreview(){
+  if(animTimer){ clearTimeout(animTimer); animTimer = null; }
+}
+
+function startPreview(){
+  stopPreview();
+  if(!img2) return;
+  var res = document.getElementById("res2");
+  res.innerHTML = "";
+
+  var fw = Math.floor(img2.width / 3);
+  var fh = img2.height;
+  var canvas = document.createElement("canvas");
+  canvas.width = fw; canvas.height = fh;
+  canvas.style.maxWidth = "240px";
+  canvas.style.height = "auto";
+  canvas.style.borderRadius = "12px";
+  canvas.style.border = "1px solid var(--line)";
+  var cap = document.createElement("div");
+  cap.style.cssText = "color:var(--ink-soft);font-size:13px;font-weight:600;margin-top:10px";
+  cap.textContent = "움직임 미리보기";
+  res.appendChild(canvas);
+  res.appendChild(cap);
+
+  var ctx = canvas.getContext("2d");
+  animFrame = 0;
+  (function tick(){
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, fw, fh);
+    ctx.drawImage(img2, animFrame * fw, 0, fw, fh, 0, 0, fw, fh);
+    animFrame = (animFrame + 1) % 3;
+    animTimer = setTimeout(tick, parseInt(speed.value, 10));
+  })();
+}
+
+wireDrop("drop2", "file2", "ph2", function(img){
+  img2 = img;
+  document.getElementById("go2").disabled = false;
+  setStatus(document.getElementById("st2"), "그림을 올렸어요. 아래 움직임을 확인하고 GIF로 저장하세요.", "");
+  startPreview();
+});
+
+function getGifWorker(){
+  var url = "https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js";
+  return fetch(url).then(function(r){ return r.blob(); })
+    .then(function(b){ return URL.createObjectURL(b); })
+    .catch(function(){ return url; }); // 실패하면 원본 주소 사용
+}
+
+document.getElementById("go2").addEventListener("click", function(){
+  if(!img2) return;
+  var btn = this;
+  var st = document.getElementById("st2");
+  var res = document.getElementById("res2");
+  stopPreview();
+  btn.disabled = true;
+  res.innerHTML = "";
+  setStatus(st, "GIF를 만드는 중...", "");
+
+  var frameW = Math.floor(img2.width / 3);
+  var frameH = img2.height;
+  var delay = parseInt(speed.value, 10);
+
+  getGifWorker().then(function(workerUrl){
+    var gif = new GIF({
+      workers: 2, quality: 10,
+      width: frameW, height: frameH,
+      workerScript: workerUrl
+    });
+
+    for(var i = 0; i < 3; i++){
+      var canvas = cropToCanvas(img2, i * frameW, 0, frameW, frameH);
+      gif.addFrame(canvas, { delay: delay });
+    }
+
+    gif.on("finished", function(blob){
+      downloadBlob(blob, "dream_run.gif");
+
+      var im = new Image();
+      im.src = URL.createObjectURL(blob);
+      im.style.maxWidth = "240px";
+      res.appendChild(im);
+
+      var cap = document.createElement("div");
+      cap.style.cssText = "color:var(--ok);font-size:13px;font-weight:700;margin:10px 0 0";
+      cap.textContent = "완성된 GIF — 저장됐어요!";
+      res.appendChild(cap);
+
+      var a = document.createElement("a");
+      a.href = im.src; a.download = "dream_run.gif";
+      a.style.cssText = "display:inline-block;margin-top:6px;color:var(--ink-soft);font-size:13px;font-weight:600;text-decoration:underline";
+      a.textContent = "저장이 안 되면 여기를 눌러요";
+      res.appendChild(a);
+
+      setStatus(st, "완료! GIF를 저장했어요.", "ok");
+      btn.disabled = false;
+    });
+
+    gif.render();
+  }).catch(function(){
+    setStatus(st, "GIF를 만들지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.", "err");
+    btn.disabled = false;
+  });
+});
+</script>
+</body>
+</html>
