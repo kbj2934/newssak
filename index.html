@@ -64,6 +64,33 @@
   .card-head h2{font-size:21px;font-weight:800;letter-spacing:-.01em}
   .card-sub{color:var(--ink-soft);font-size:14px;margin:2px 0 20px 56px}
 
+  /* ── 칸 수 고르기 ─────────────────────────── */
+  .gridpick{
+    border:1px solid var(--line);border-radius:16px;background:var(--paper);
+    padding:16px 18px;margin-bottom:18px;
+  }
+  .gp-title{font-size:13px;font-weight:800;color:var(--ink-soft);letter-spacing:.02em;margin-bottom:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    appearance:none;font-family:inherit;font-size:14px;font-weight:700;
+    padding:8px 14px;border-radius:999px;border:1px solid var(--line);
+    background:#fff;color:var(--ink-soft);cursor:pointer;transition:.15s;
+  }
+  .chip:hover{border-color:var(--sky);color:var(--sky-deep)}
+  .chip.is-on{background:var(--mist);border-color:var(--sky);color:var(--sky-deep)}
+  .gp-custom{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);
+    font-size:14px;color:var(--ink-soft);
+  }
+  .gp-custom label{display:flex;align-items:center;gap:7px;font-weight:600}
+  .gp-custom select{
+    font-family:inherit;font-size:14px;font-weight:700;color:var(--ink);
+    padding:7px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer;
+  }
+  .gp-count{margin-left:auto;font-weight:700;color:var(--ink)}
+  .gp-count b{color:var(--sky-deep)}
+
   .drop{
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     width:100%;min-height:150px;
@@ -77,6 +104,15 @@
   .drop .s{color:var(--ink-soft);font-size:13px;margin-top:3px}
   .drop img{max-width:100%;max-height:260px;border-radius:11px;display:block;margin:0 auto}
   input[type=file]{display:none}
+
+  /* 올린 그림 위에 자르는 선 보여주기 */
+  .pv{position:relative;display:inline-block;max-width:100%;line-height:0}
+  .pv-lines{position:absolute;inset:0;display:grid;pointer-events:none}
+  .pv-lines span{
+    border-right:1px dashed rgba(59,108,246,.9);
+    border-bottom:1px dashed rgba(59,108,246,.9);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.4);
+  }
 
   .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:18px}
   .btn{
@@ -97,18 +133,15 @@
   .status.ok{color:var(--ok)}
   .status.err{color:#d6453c}
 
-  .grid9{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px;
-  }
-  .grid9:empty{margin:0}
-  .grid9 figure{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
-  .grid9 img{width:100%;display:block;aspect-ratio:1;object-fit:contain}
-  .grid9 figcaption{font-size:11px;text-align:center;color:var(--ink-soft);padding:4px 0;font-weight:600}
+  .cells{display:grid;gap:8px;margin-top:18px}
+  .cells:empty{margin:0}
+  .cells figure{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+  .cells img{width:100%;display:block}
+  .cells figcaption{font-size:11px;text-align:center;color:var(--ink-soft);padding:4px 0;font-weight:600}
 
   .result{margin-top:18px;text-align:center}
   .result:empty{margin:0}
   .result img{max-width:100%;border-radius:12px;border:1px solid var(--line)}
-  .result .dl{margin-top:14px;display:inline-block}
 
   footer{text-align:center;color:var(--ink-soft);font-size:13px;margin-top:8px}
 </style>
@@ -122,24 +155,41 @@
     <p>꿈 그림을 올리면 잘라서 저장하거나, 움직이는 GIF로 만들어 줘요.</p>
   </header>
 
-  <!-- 1. 9칸 자르기 -->
+  <!-- 1. 칸 나눠 자르기 -->
   <section class="card">
     <div class="card-head">
       <span class="badge b1">1</span>
       <h2>나의 꿈을 이루는 캐릭터</h2>
     </div>
-    <p class="card-sub">3×3(9칸) 그림을 잘라 <b>dream1 ~ dream9</b>로 저장하고 ZIP으로 묶어요.</p>
+    <p class="card-sub">그림을 원하는 칸 수로 잘라 <b>dream1 ~ dream<span id="lastName">9</span></b>로 저장하고 ZIP으로 묶어요.</p>
+
+    <div class="gridpick">
+      <div class="gp-title">몇 칸으로 자를까요?</div>
+      <div class="chips" id="presets">
+        <button type="button" class="chip" data-c="2" data-r="1">2 × 1</button>
+        <button type="button" class="chip" data-c="3" data-r="1">3 × 1</button>
+        <button type="button" class="chip" data-c="2" data-r="2">2 × 2</button>
+        <button type="button" class="chip is-on" data-c="3" data-r="3">3 × 3</button>
+        <button type="button" class="chip" data-c="4" data-r="4">4 × 4</button>
+        <button type="button" class="chip" data-c="4" data-r="2">4 × 2</button>
+      </div>
+      <div class="gp-custom">
+        <label>가로 <select id="selCols"></select></label>
+        <label>세로 <select id="selRows"></select></label>
+        <span class="gp-count">모두 <b id="cellCount">9</b>칸</span>
+      </div>
+    </div>
 
     <label class="drop" id="drop1">
       <input type="file" id="file1" accept="image/*">
       <div id="ph1">
         <div class="ico">🖼️</div>
-        <div class="t">9칸 그림 올리기</div>
-        <div class="s">정사각형(3×3) 그림을 선택하거나 끌어다 놓으세요</div>
+        <div class="t">그림 올리기</div>
+        <div class="s">그림을 선택하거나 끌어다 놓으세요</div>
       </div>
     </label>
 
-    <div class="grid9" id="grid1"></div>
+    <div class="cells" id="grid1"></div>
 
     <div class="row">
       <button class="btn btn-sky" id="go1" disabled>9칸 잘라서 ZIP 저장</button>
@@ -258,63 +308,165 @@ function wireDrop(dropId, fileId, phId, onReady){
   });
 }
 
-/* ---------- 1. 9칸 자르기 → ZIP ---------- */
+/* ---------- 1. 원하는 칸 수로 자르기 → ZIP ---------- */
+var MAX_SIDE = 6;          // 가로·세로 최대 칸 수
+var cols = 3, rows = 3;    // 지금 고른 칸 수
 var img1 = null;
 var cells1 = [];
+
+var selCols = document.getElementById("selCols");
+var selRows = document.getElementById("selRows");
+var ph1 = document.getElementById("ph1");
+
+(function fillSelects(){
+  for(var i = 1; i <= MAX_SIDE; i++){
+    var a = document.createElement("option");
+    a.value = i; a.textContent = i + "칸";
+    selCols.appendChild(a);
+    var b = document.createElement("option");
+    b.value = i; b.textContent = i + "칸";
+    selRows.appendChild(b);
+  }
+})();
+
+/* 몇 번째 칸인지 → 파일 이름 (10칸 넘으면 01, 02… 로 자리 맞춤) */
+function cellName(idx, total){
+  var n = String(idx);
+  if(total >= 10 && n.length < 2) n = "0" + n;
+  return "dream" + n;
+}
+
+/* 칸 경계 좌표 (남는 픽셀 없이 정확히 나누기) */
+function edge(total, i, n){ return Math.round(total * i / n); }
+
+function syncGridUI(){
+  var total = cols * rows;
+  selCols.value = cols;
+  selRows.value = rows;
+  document.getElementById("cellCount").textContent = total;
+  document.getElementById("lastName").textContent = cellName(total, total).replace("dream", "");
+  document.getElementById("go1").textContent = total + "칸 잘라서 ZIP 저장";
+
+  var chips = document.querySelectorAll("#presets .chip");
+  for(var i = 0; i < chips.length; i++){
+    var on = (+chips[i].dataset.c === cols && +chips[i].dataset.r === rows);
+    chips[i].classList.toggle("is-on", on);
+  }
+}
+
+/* 올린 그림 위에 자르는 선 그리기 */
+function paintDropPreview(){
+  if(!img1) return;
+  ph1.innerHTML = "";
+  var box = document.createElement("div");
+  box.className = "pv";
+
+  var im = new Image();
+  im.src = img1.src;
+  box.appendChild(im);
+
+  var lines = document.createElement("div");
+  lines.className = "pv-lines";
+  lines.style.gridTemplateColumns = "repeat(" + cols + ",1fr)";
+  lines.style.gridTemplateRows = "repeat(" + rows + ",1fr)";
+  for(var r = 0; r < rows; r++){
+    for(var c = 0; c < cols; c++){
+      var s = document.createElement("span");
+      if(c === cols - 1) s.style.borderRight = "none";
+      if(r === rows - 1) s.style.borderBottom = "none";
+      lines.appendChild(s);
+    }
+  }
+  box.appendChild(lines);
+  ph1.appendChild(box);
+}
 
 function buildPreview1(){
   cells1 = [];
   var grid = document.getElementById("grid1");
   grid.innerHTML = "";
   if(!img1) return;
-  var cellW = Math.floor(img1.width / 3);
-  var cellH = Math.floor(img1.height / 3);
-  for(var r = 0; r < 3; r++){
-    for(var col = 0; col < 3; col++){
-      var idx = r * 3 + col + 1;
-      var canvas = cropToCanvas(img1, col * cellW, r * cellH, cellW, cellH);
-      cells1.push({ idx: idx, canvas: canvas });
+
+  grid.style.gridTemplateColumns = "repeat(" + cols + ",1fr)";
+  var total = cols * rows;
+
+  for(var r = 0; r < rows; r++){
+    for(var c = 0; c < cols; c++){
+      var sx = edge(img1.width, c, cols);
+      var sy = edge(img1.height, r, rows);
+      var sw = edge(img1.width, c + 1, cols) - sx;
+      var sh = edge(img1.height, r + 1, rows) - sy;
+
+      var idx = r * cols + c + 1;
+      var canvas = cropToCanvas(img1, sx, sy, sw, sh);
+      var name = cellName(idx, total);
+      cells1.push({ name: name, canvas: canvas });
 
       var fig = document.createElement("figure");
       var im = new Image(); im.src = canvas.toDataURL("image/png");
-      var cap = document.createElement("figcaption"); cap.textContent = "dream" + idx;
+      var cap = document.createElement("figcaption"); cap.textContent = name;
       fig.appendChild(im); fig.appendChild(cap); grid.appendChild(fig);
     }
   }
 }
 
+function applyGrid(newCols, newRows){
+  cols = Math.min(MAX_SIDE, Math.max(1, newCols));
+  rows = Math.min(MAX_SIDE, Math.max(1, newRows));
+  syncGridUI();
+  if(img1){
+    paintDropPreview();
+    buildPreview1();
+    setStatus(document.getElementById("st1"),
+      cols + "×" + rows + " (" + (cols * rows) + "칸)으로 자를 준비가 됐어요.", "");
+  }
+}
+
+document.getElementById("presets").addEventListener("click", function(e){
+  var chip = e.target.closest(".chip");
+  if(!chip) return;
+  applyGrid(+chip.dataset.c, +chip.dataset.r);
+});
+selCols.addEventListener("change", function(){ applyGrid(+selCols.value, rows); });
+selRows.addEventListener("change", function(){ applyGrid(cols, +selRows.value); });
+
 wireDrop("drop1", "file1", "ph1", function(img){
   img1 = img;
   document.getElementById("go1").disabled = false;
+  paintDropPreview();
   buildPreview1();
-  setStatus(document.getElementById("st1"), "9칸 미리보기를 확인하고 ZIP으로 저장하세요.", "");
+  setStatus(document.getElementById("st1"),
+    "미리보기를 확인하고 ZIP으로 저장하세요.", "");
 });
 
 document.getElementById("go1").addEventListener("click", function(){
   if(!img1 || !cells1.length) return;
   var btn = this;
   var st = document.getElementById("st1");
+  var total = cells1.length;
   btn.disabled = true;
   setStatus(st, "ZIP으로 저장하는 중...", "");
 
   var zip = new JSZip();
   var tasks = cells1.map(function(cell){
     return canvasToBlob(cell.canvas).then(function(blob){
-      zip.file("dream" + cell.idx + ".png", blob);
+      zip.file(cell.name + ".png", blob);
     });
   });
 
   Promise.all(tasks).then(function(){
     return zip.generateAsync({ type: "blob" });
   }).then(function(content){
-    downloadBlob(content, "dream_character.zip");
-    setStatus(st, "완료! dream1~dream9를 ZIP으로 저장했어요.", "ok");
+    downloadBlob(content, "dream_character_" + cols + "x" + rows + ".zip");
+    setStatus(st, "완료! " + cells1[0].name + "~" + cells1[total - 1].name + " " + total + "장을 ZIP으로 저장했어요.", "ok");
     btn.disabled = false;
   }).catch(function(){
     setStatus(st, "저장 중 문제가 생겼어요. 다시 시도해 주세요.", "err");
     btn.disabled = false;
   });
 });
+
+syncGridUI();
 
 /* ---------- 2. 3프레임 → GIF ---------- */
 var img2 = null;
